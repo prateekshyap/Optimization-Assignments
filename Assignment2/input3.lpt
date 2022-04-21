@@ -1,5 +1,5 @@
 Maximize
- obj: x1 + x2
+ obj: x1 + x2 + x3
 Subject To
- c1: x1 + x2 + x4 = 8
+ c1: x1 + x2 = 8
  c2: 2 x1 + x2 + x3 = 10

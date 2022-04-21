@@ -1,8 +1,9 @@
 from Simplex import Simplex
 from fractions import Fraction
+import time
 
-class Variable:
-	"""docstring for Variable"""
+startTime = time.time()
+class Variable: # contains the structure of a variable
 	__sign = False
 	__coeff = 0
 	__varName = ''
@@ -28,13 +29,8 @@ class Variable:
 		return self.__coeff
 	def getVarName(self):
 		return self.__varName
-	# def printVar(self):
-	# 	if (self.__sign):
-	# 		print('+ ',self.__coeff,' ',self.__varName,' ',end='')
-	# 	else:
-	# 		print('- ',self.__coeff,' ',self.__varName,' ',end='')
 
-
+# declarations
 z = []
 Ai = []
 A = [[]]
@@ -53,61 +49,62 @@ sign = ''
 varName = ''
 newVar = Variable(True,0,'')
 
-
+# read from input file
 fileName = input('Enter File Name:')
 file = open(fileName,"r")
 for line in file:
 	tokens = line.split()
-	if tokens[0] == 'Maximize' or tokens[0] == 'Minimize' or tokens[0] == 'Subject' or tokens[0] == 'Bounds' or tokens[0] == 'General':
+	if tokens[0] == 'Maximize' or tokens[0] == 'Minimize' or tokens[0] == 'Subject' or tokens[0] == 'Bounds' or tokens[0] == 'General': # if the line is not a data
 		if tokens[0] == 'Maximize' or tokens[0] == 'Minimize':
-			target = tokens[0]
-		mode = tokens[0]
-		continue
-	if mode == 'Maximize' or mode == 'Minimize':
+			target = tokens[0] # set target
+		mode = tokens[0] # set mode
+		continue # continue
+	if mode == 'Maximize' or mode == 'Minimize': # if mode is to maximize or minimize
 		index = 1
 		sign  = '+'
 		coeff = 1
-		while index < len(tokens):
-			if tokens[index] == '-':
+		while index < len(tokens): # for each token
+			if tokens[index] == '-': # set sign
 				sign = '-'
-			elif tokens[index] == '+':
+			elif tokens[index] == '+': # set sign
 				sign = '+'
-			elif tokens[index].isnumeric():
+			elif tokens[index].isnumeric(): # set coefficient
 				coeff = int(tokens[index])
-			elif tokens[index] != '+':
+			else: # store in z (objective function)
 				varName = tokens[index]
 				newVar = Variable(sign,coeff,varName)
 				z.append(newVar)
 				coeff = 1
 			index += 1
-	elif mode == 'Subject':
+	elif mode == 'Subject': # if mode is subject to
 		Ai = []
 		index = 1
 		sign = '+'
 		coeff = 1
-		while index < len(tokens):
-			if tokens[index] == '-':
+		while index < len(tokens): # for each token
+			if tokens[index] == '-': # set sign
 				sign = '-'
-			elif tokens[index] == '+':
+			elif tokens[index] == '+': # set sign
 				sign = '+'
-			elif tokens[index].isnumeric():
+			elif tokens[index].isnumeric(): # set coefficient
 				coeff = int(tokens[index])
-			elif tokens[index] == '>' or tokens[index] == '<' or tokens[index] == '>=' or tokens[index] == '<=' or tokens[index] == '=':
+			elif tokens[index] == '>' or tokens[index] == '<' or tokens[index] == '>=' or tokens[index] == '<=' or tokens[index] == '=': # set comparator
 				comp.append(tokens[index])
 				break
-			else:
+			else: # append to Ai
 				varName = tokens[index]
 				newVar = Variable(sign,coeff,varName)
 				Ai.append(newVar)
 				coeff = 1
 			index += 1
-		A.append(Ai)
-		b.append(int(tokens[index+1]))
-	elif mode == 'Bounds':
+		A.append(Ai) # append Ai to A
+		b.append(int(tokens[index+1])) # append b
+	elif mode == 'Bounds': # if mode is bounds, add both side to A and b
 		Ai = []
 		newVar = Variable('+',1,tokens[2])
 		Ai.append(newVar)
 		A.append(Ai)
+		# set comparator
 		if tokens[1] == '<':
 			comp.append('>')
 		elif tokens[1] == '>':
@@ -126,19 +123,9 @@ for line in file:
 		comp.append(tokens[3])
 		b.append(int(tokens[4]))
 
-A.pop(0)
-# print(target)
-# for i in range(len(z)):
-# 	z[i].printVar()
-# print()
-# print('Subject To')
-# for i in range(len(A)):
-# 	Ai = A[i]
-# 	for j in range(len(Ai)):
-# 		Ai[j].printVar()
-# 	print(' ',comp[i],' ',b[i])
+A.pop(0) # remove the first blank list
 
-
+# get the objective function
 lhsEq = ''
 if (z[0].getSign() == '-'):
 	lhsEq = '-'
@@ -158,8 +145,11 @@ for i in range(1,len(z)):
 	lhsEq += '_'
 	lhsEq += currVarName[1:len(currVarName)]
 	lhsEq += ' '
+
+# set objective function
 objective = (target.lower(),lhsEq.strip())
 
+#get the constraints
 constraints = []
 for i in range(len(A)):
 	Ai = A[i]
@@ -186,9 +176,25 @@ for i in range(len(A)):
 	lhsEq += comp[i]
 	lhsEq += ' '
 	lhsEq += str(b[i])
+
+	# set constraints
 	constraints.append(lhsEq)
 
-lp_system = Simplex(len(z), constraints, objective)
-print(lp_system.solution)
-# #{'x_2': Fraction(6, 1), 'x_1': Fraction(2, 1)}
-print(lp_system.optimize_val)
+# set the lp system
+lpSystem = Simplex(len(z), constraints, objective)
+
+# print the solution
+print('--------------------------------------')
+print('               Solution')
+print('--------------------------------------')
+# print(lpSystem.solution)
+for key in lpSystem.solution:
+	print(key, '=', lpSystem.solution[key])
+
+# print the objective function
+print('--------------------------------------')
+print('       Objective Function Value')
+print('--------------------------------------')
+print('z =',lpSystem.optVal)
+
+# print("%s seconds",(time.time()-startTime))
